@@ -5,7 +5,7 @@ use std::{sync::{Arc, Mutex, mpsc::{self, Receiver, Sender}}, thread};
 
 /// 系统1，对外的系统：
 /// 输入：闭包
-/// 输出：无
+/// 输出：执行闭包
 /// 按钮：execute
 /// 
 /// 系统2，内部系统：
