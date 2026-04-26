@@ -6,5 +6,6 @@
    1. https://doc.rust-lang.org/book/
    2. https://www.bilibili.com/video/BV1m1sreSEoh
    3. https://github.com/rust-lang/book
+   4. https://kaisery.github.io/trpl-zh-cn/title-page.html
 2. unsafe code: https://cliffle.com/p/dangerust/
 3. 

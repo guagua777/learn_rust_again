@@ -1,0 +1,89 @@
+Rust 核心知识总图：DST + 胖指针 + dyn Trait + 对象安全
+一、先总览：Rust 所有类型三大分类
+SST 固定大小类型
+编译期尺寸确定，可直接栈分配：i32/u64/String/ 普通结构体。
+原生 DST 动态大小类型
+编译期尺寸未知、具体唯一类型：str、[T]。
+Trait DST 动态大小类型
+编译期尺寸未知、抽象多态类型：dyn Trait。
+二、两类 DST 核心区别（重中之重）
+1. 原生 DST：str / [T]
+本质：真实具体类型，不是特征
+胖指针结构：
+plaintext
+数据指针 + 长度(usize)
+作用：管理「长度不固定」的连续内存
+多态：无，类型唯一
+关键字：不需要 dyn
+合法写法：
+&str、Box<str>、&[T]、Rc<[T]>
+错误写法：
+&dyn str、dyn [i32]
+2. Trait-DST：dyn Trait
+本质：特征对象，抽象行为集合
+胖指针结构：
+plaintext
+实例数据指针 + vtable虚表指针
+作用：运行时多态、存放异构类型
+多态：强多态，一个 dyn 容纳多种实现
+关键字：必须加 dyn
+合法写法：
+&dyn Trait、Box<dyn Trait>、Arc<dyn Trait>
+错误写法：
+&Trait、Box<Trait>
+三、dyn 关键字 唯一规则
+dyn 全程只为 Trait 服务
+含义：标记「动态分发 + 虚表 vtable」
+目的：
+和泛型静态分发 <T: Trait> 做强制区分
+编译器一眼识别：这是trait 对象胖指针
+四、对象安全 完整判定规则（能写 dyn 的前提）
+一个 Trait 能转为 dyn Trait，必须全部满足：
+✅ 所有方法必须带接收者：
+&self / &mut self / self
+❌ 禁止：无 self 静态方法
+✅ 方法不能带泛型参数
+❌ 禁止：fn foo<T>(&self)
+✅ 方法返回值不能直接写 Self
+❌ 禁止：fn new() -> Self
+✅ 无 async fn（async 隐含泛型，天然不安全）
+快速记忆
+无自引用、带泛型、返回自身、异步方法四者占其一 → 无法 dyn
+五、静态分发 vs 动态分发 对照表
+表格
+项目	静态分发 泛型<T: Trait>	动态分发 dyn Trait
+语法	fn call<T: Animal>(t:T)	fn call(t: &dyn Animal)
+类型确定	编译期	运行期
+调用方式	直接地址跳转	查 vtable 虚表
+运行开销	无	微小开销
+二进制	代码膨胀（单态化）	体积更小
+异构集合	不支持	完美支持Vec<Box<dyn T>>
+适用场景	性能优先、类型固定	插件化、多态、动态类型
+六、DST 统一铁律（全书通用）
+所有 DST 类型：str / [T] / dyn Trait
+都无法在栈上单独定义变量
+都必须被指针包裹使用：
+借用&、堆指针Box、智能指针Rc/Arc
+rust
+运行
+// 全部非法
+let s: str = "abc";
+let arr: [i32] = [1,2,3];
+let t: dyn Animal;
+
+// 全部合法
+let s: &str = "abc";
+let arr: &[i32] = &[1,2,3];
+let t: &dyn Animal = &Cat;
+七、串联你之前书本原文
+可以将 str 与各种指针类型组合：Box<str>/Rc<str>每个 trait 本身也是 DST，需要放在指针后：&dyn Trait/Box<dyn Trait>
+逻辑闭环：
+str 是 DST（具体类型）→ 指针包裹 + 长度字段
+trait 是 DST（抽象行为）→ 必须加dyn + 指针包裹 + vtable
+八、终极极简背诵版
+DST 两类：普通数据 DST、Trait 多态 DST
+str/[T] 是普通 DST，不用 dyn
+特征对象必须写 dyn Trait，不加直接报错
+泛型 = 静态快，dyn = 动态灵
+想存不同结构体到一个数组，只用 Box<dyn 特征>
+不能满足对象安全的 trait，彻底不能用 dyn

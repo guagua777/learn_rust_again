@@ -43,15 +43,20 @@ fn main1() {
         };
 
 
-        // Box::new之后的类型，仍然是不同的，因为底层的 async 块生成的匿名类型不同，Box::new 只是将它们包装成 Box<T>，但 T 仍然是不同的匿名类型，因此无法放入同一个 Vec 中。
+        // 报错之所以说需要 pin，是因为 dyn Future<Output = ()> 需要实现 Unpin trait，而它当前并没有实现
+  
+        // 使用trait object，这样是可以的，但仅仅这样是不可以的，
+        // 因为不仅需要trait object，还需要实现Unpin trait，才能放入同一个Vec中
         // let futures: Vec<Box<dyn Future<Output = ()>>> = 
         //     vec![Box::new(tx1_fut), Box::new(tx_fut), Box::new(rx_fut)];
 
 
-        // Box::pin 之后的类型，仍然是不同的，因为底层的 async 块生成的匿名类型不同，Box::pin 只是将它们包装成 Pin<Box<T>>，但 T 仍然是不同的匿名类型，因此无法放入同一个 Vec 中。
-        // 必须显示的将Pin<Box<T>>里面的T转换成统一的trait object类型，才能放入同一个Vec中。
-        // 即显示的转换为dyn Future<Output = ()>这个trait
-        // 显示转换为同一个trait
+        // Unpin informs the compiler that a given type does not need to uphold any guarantees 
+        // about whether the value in question can be safely moved.
+        // the compiler implements Unpin automatically for all types where it can prove it is safe
+        
+        // Box::new 仅仅实现了 trait object
+        // Box::pin 即实现了 trait object，又pin了
         let futures: Vec<Pin<Box<dyn Future<Output = ()>>>> = 
             vec![Box::pin(tx1_fut), Box::pin(tx_fut), Box::pin(rx_fut)];
 
@@ -126,6 +131,8 @@ fn main2() {
         // 必须 Pin：
         // pin! 宏的作用是把 Future “固定” 在内存中，防止其被移动（异步运行时需要 Future 内存地址稳定），所以 Pin 是前置条件。
         // 简单说：trpl::join_all 要驱动多个 Future 执行，就必须调用它们的 poll 方法，而调用 poll 必须满足 Pin<&mut Future> 的类型要求 —— 这就是 &mut 存在的根本原因。
+        
+        // pin + trait object（此时使用&实现，而不是Box）
         let futures: Vec<Pin<&mut dyn Future<Output = ()>>> = 
             vec![tx1_fut, tx_fut, rx_fut];
 

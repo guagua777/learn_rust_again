@@ -1,0 +1,123 @@
+完整可运行 Demo：泛型静态分发 + dyn Trait 动态 trait 对象
+1. 完整代码（直接复制运行）
+rust
+运行
+// 定义特征
+trait Animal {
+    fn sound(&self);
+}
+
+// 不同实现类型
+struct Cat;
+struct Dog;
+struct Duck;
+
+impl Animal for Cat {
+    fn sound(&self) {
+        println!("猫咪：喵喵喵");
+    }
+}
+
+impl Animal for Dog {
+    fn sound(&self) {
+        println!("狗狗：汪汪汪");
+    }
+}
+
+impl Animal for Duck {
+    fn sound(&self) {
+        println!("鸭子：嘎嘎嘎");
+    }
+}
+
+// ======================
+// 方式1：静态分发 泛型 T: Animal
+// 编译期单态化，无运行时开销
+// ======================
+fn static_talk<T: Animal>(animal: T) {
+    animal.sound();
+}
+
+// ======================
+// 方式2：动态分发 &dyn Animal 引用
+// ======================
+fn dyn_talk(animal: &dyn Animal) {
+    animal.sound();
+}
+
+fn main() {
+    println!("===== 静态分发 泛型 =====");
+    static_talk(Cat);
+    static_talk(Dog);
+
+    println!("\n===== 动态分发 &dyn Trait =====");
+    let cat = Cat;
+    let dog = Dog;
+    dyn_talk(&cat);
+    dyn_talk(&dog);
+
+    // ======================
+    // 核心优势：异构集合 Vec<Box<dyn Animal>>
+    // 可以存放完全不同的类型，只有 dyn 能做到
+    // ======================
+    println!("\n===== 异构集合 Box<dyn Trait> =====");
+    let animals: Vec<Box<dyn Animal>> = vec![
+        Box::new(Cat),
+        Box::new(Dog),
+        Box::new(Duck),
+    ];
+
+    for a in animals {
+        a.sound();
+    }
+}
+2. 运行结果
+plaintext
+===== 静态分发 泛型 =====
+猫咪：喵喵喵
+狗狗：汪汪汪
+
+===== 动态分发 &dyn Trait =====
+猫咪：喵喵喵
+狗狗：汪汪汪
+
+===== 异构集合 Box<dyn Trait> =====
+猫咪：喵喵喵
+狗狗：汪汪汪
+鸭子：嘎嘎嘎
+3. 结合你之前的疑问：为什么必须写 dyn
+① 错误写法（去掉 dyn，直接报错）
+rust
+运行
+// 非法！新版Rust强制禁止
+fn bad_talk(animal: &Animal) {}
+let list: Vec<Box<Animal>> = vec![];
+报错核心：
+plaintext
+error[E0782]: trait objects must include the `dyn` keyword
+② 本质对应你书上的 DST 知识点
+Animal 特征本身 = DST 动态大小类型，大小未知，不能直接栈分配；
+dyn Animal = 标记为「trait 对象 DST」；
+DST 规则统一：
+str → 只能用 &str / Box<str>
+[T] → 只能用 &[T] / Box<[T]>
+dyn Trait → 只能用 &dyn Trait / Box<dyn Trait>
+4. 额外补充：Rc/Arc 版本（共享所有权）
+rust
+运行
+use std::rc::Rc;
+
+fn main() {
+    // Rc 包裹 trait 对象
+    let a1: Rc<dyn Animal> = Rc::new(Cat);
+    let a2: Rc<dyn Animal> = Rc::new(Dog);
+    a1.sound();
+    a2.sound();
+}
+5. 极简总结对照
+表格
+写法	分发方式	适用场景
+fn foo<T: Trait>	静态分发	性能优先、单一类型
+&dyn Trait	动态分发	临时借用、多态参数
+Box<dyn Trait>	动态分发	异构数组、所有权转移
+Rc/Arc<dyn Trait>	动态分发	多线程 / 多位置共享

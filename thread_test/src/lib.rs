@@ -5,3 +5,5 @@ pub mod future_test;
 pub mod async_concurrency;
 pub mod any_number_futures;
 pub mod yield_test;
+pub mod future_define;
+pub mod stream_test;

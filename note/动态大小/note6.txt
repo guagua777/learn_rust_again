@@ -1,0 +1,6 @@
+trait BadTrait {
+    // 无 self：无法绑定实例，不能动态分发
+    fn func();
+    // 泛型方法：无法统一 vtable
+    fn gen<T>(&self);
+}

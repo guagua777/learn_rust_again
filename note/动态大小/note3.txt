@@ -1,0 +1,50 @@
+为什么&str，不需要&dyn str
+这是一个超级关键、一针见血的好问题！
+我用最简单、最本质的话给你讲透：因为 str 不是 trait，只有 trait 才需要 dyn，普通类型（如 str、[i32]）根本不需要、也不能加 dyn！
+核心结论（一句话）
+dyn 只用于 trait：标记 trait 对象（动态分发）
+str 是普通动态大小类型（DST），不是 trait，所以永远不需要 &dyn str
+详细解释（彻底懂）
+1. 什么是 dyn？
+dyn = dynamic dispatch（动态分发）只有当你要：
+把 不同具体类型
+通过 同一个 trait 接口
+在 运行时 调用方法
+才需要 dyn。
+例如：
+rust
+运行
+&dyn Animal   // 可以是 Cat、Dog、Duck……运行时决定
+Box<dyn Draw> // 可以是 Button、Text、Image……
+2. 那 str 是什么？
+str 就是字符串切片类型，它：
+是固定唯一类型
+不是 trait
+没有 “多种实现”
+不需要 “动态分发”
+所以：
+rust
+运行
+&str    ✅ 正确（普通DST指针）
+&dyn str ❌ 错误、无意义、语法非法
+3. 为什么 &dyn Trait 要加 dyn，而 &str 不用？
+因为它们是两种完全不同的 DST（动态大小类型）：
+A. dyn Trait（trait 对象 DST）
+代表任意实现该 trait 的类型
+类型运行时才知道
+必须用 dyn 标记：我要动态多态！
+B. str / [T]（普通数据 DST）
+代表唯一确定的类型：字符串、切片
+类型编译期就确定
+不需要多态、不需要虚表、不需要 dyn
+最直观类比
+表格
+类型	性质	是否需要 dyn	写法
+str	普通 DST（字符串）	❌ 不需要	&str
+[i32]	普通 DST（切片）	❌ 不需要	&[i32]
+Animal（trait）	特征	✅ 必须加	&dyn Animal
+最终极简总结
+dyn 是 trait 专属关键字
+只有 trait 对象才需要 dyn
+str 是普通类型，不是 trait → 不需要 dyn
+所以是 &str，永远不是 &dyn str

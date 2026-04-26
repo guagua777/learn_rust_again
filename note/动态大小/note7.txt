@@ -1,0 +1,86 @@
+直接上 反例代码 + 报错 + 原因 + 修复
+我给你写一段一定会报错的代码，专门演示：不是所有 trait 都能写成 dyn Trait，不满足 “对象安全” 就会编译失败！
+你直接复制就能看到报错，非常直观。
+1. 报错反例代码（直接运行）
+rust
+运行
+// 这是一个【不满足对象安全】的 trait
+// 所以它 不能 变成 dyn NotSafeTrait
+trait NotSafe {
+    // 错误1：没有 &self 参数（无实例方法）
+    fn no_self();
+
+    // 错误2：带泛型的方法
+    fn generic<T>(&self, value: T);
+
+    // 错误3：返回 Self（返回自身类型）
+    fn return_self(&self) -> Self;
+}
+
+struct Demo;
+impl NotSafe for Demo {
+    fn no_self() {
+        println!("no self");
+    }
+
+    fn generic<T>(&self, _value: T) {}
+
+    fn return_self(&self) -> Self {
+        Demo
+    }
+}
+
+fn main() {
+    // ❌ 这里会直接报错！
+    // 因为 NotSafe 不是对象安全的，不能做 trait 对象
+    let x: Box<dyn NotSafe> = Box::new(Demo);
+}
+2. 编译器报错长这样
+plaintext
+error: the trait `NotSafe` cannot be made into an object
+ --> src/main.rs:28:13
+  |
+1 | trait NotSafe {
+  |       ------- this trait cannot be made into an object...
+  |       |
+  |       ...because it contains an associated function: `no_self`
+  |       ...because it contains a generic method: `generic`
+  |       ...because it uses `Self` in return position
+核心一句话：这个 trait 不满足对象安全，所以不能写成 dyn NotSafe
+3. 到底什么是【对象安全】？（最简单版本）
+一个 trait 要能变成 dyn Trait，必须满足 3 条：
+1. 所有方法必须有 &self / &mut self
+不能是静态方法。因为 trait 对象需要知道调用哪个实例。
+2. 方法不能带泛型
+泛型无法放进虚表（vtable），运行时无法分发。
+3. 不能出现 -> Self 返回值
+Self 代表具体类型，而 dyn 是未知类型，无法确定大小。
+4. 修复成【安全可 dyn】的版本
+rust
+运行
+trait Safe {
+    // ✅ 必须带 &self
+    fn has_self(&self);
+}
+
+struct Demo;
+impl Safe for Demo {
+    fn has_self(&self) {
+        println!("safe!");
+    }
+}
+
+fn main() {
+    // ✅ 完全正常
+    let x: Box<dyn Safe> = Box::new(Demo);
+    x.has_self();
+}
+5. 超级好记的口诀
+无 self → 不行带泛型 → 不行返回 Self → 不行只有带 &self 普通方法 → 可以 dyn
+6. 你现在彻底懂了吗？
+我帮你把整个逻辑串起来：
+dyn 只给 trait 用，str / [T] 不用
+dyn = 动态分发 = 虚表 = 胖指针
+不是所有 trait 都能 dyn
+必须满足对象安全
+如果你愿意，我可以再给你一张

@@ -1,0 +1,47 @@
+在 Rust 中，&Trait、Box<Trait>、Rc<Trait> 这种写法在新版 Rust 中已经不允许，必须写成 &dyn Trait、Box<dyn Trait>、Rc<dyn Trait>。dyn 是强制要求的关键字，不加会直接编译报错。下面从语法、语义、历史、内存四个层面彻底讲清楚。
+一、语法层面：dyn 是 trait 对象的强制标记
+Rust 语法明确规定：trait 对象类型必须以 dyn 开头。
+合法：dyn Trait、&dyn Trait、Box<dyn Trait>、Rc<dyn Trait>
+非法：Trait、&Trait、Box<Trait>、Rc<Trait>
+编译器会直接报错：
+plaintext
+error[E0782]: trait objects must include the `dyn` keyword
+ --> src/main.rs:5:10
+  |
+5 | fn f(x: &Trait) { ... }
+  |          ^^^^^ help: add `dyn` keyword before this trait: `dyn Trait`
+  |
+  = note: trait objects without `dyn` are deprecated and will become a hard error in the future
+二、语义层面：dyn 明确表示 “动态分发”
+dyn 是 dynamic dispatch（动态分发） 的缩写。它的核心作用是：
+告诉编译器：这是 trait 对象，用运行时虚表（vtable）调用方法
+区分静态分发（泛型）与动态分发（trait 对象）
+两种分发模式对比
+表格
+模式	写法	类型确定时机	调用方式	内存 / 性能
+静态分发	fn f<T: Trait>(x: &T)	编译期	直接调用（无开销）	单态化，代码膨胀
+动态分发	fn f(x: &dyn Trait)	运行期	查 vtable 调用（有微小开销）	胖指针，代码紧凑
+dyn 就是用来显式标记：我这里要的是动态分发的 trait 对象，不是静态分发的泛型参数。
+三、历史层面：为什么以前可以不加 dyn？
+在 Rust 1.26 之前，&Trait、Box<Trait> 是合法的，当时没有 dyn 关键字。
+问题：写法模糊，容易和泛型混淆，编译器也难以区分意图。
+解决方案：Rust 团队引入 dyn 关键字，强制显式标记 trait 对象，并在后续版本中逐步废弃旧写法。
+现状：旧写法已被彻底废弃，必须加 dyn。
+四、内存层面：dyn Trait 是 “胖指针”（Fat Pointer）
+&dyn Trait、Box<dyn Trait> 不是普通指针，而是胖指针，包含两个机器字：
+数据指针：指向具体类型实例（如 Button、TextField）
+虚表指针（vtable）：指向该类型实现的 trait 方法表
+plaintext
+&dyn Trait 内存布局：
++----------------+
+| 数据指针       |  → 指向具体对象
++----------------+
+| vtable 指针    |  → 指向方法表（draw(), resize()...）
++----------------+
+dyn 关键字告诉编译器：需要为这个指针生成并携带 vtable，实现运行时多态。
+五、一句话总结
+dyn 是 Rust 中 trait 对象的强制标记，不加会编译失败。它明确表示：
+这是动态分发（运行时查 vtable）
+这是胖指针（数据指针 + vtable 指针）
+这是trait 对象，用于异构集合、运行时多态
+需要我给你整理一份 dyn Trait 的常见写法、对象安全规则、与泛型的选择指南吗？
