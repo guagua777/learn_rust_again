@@ -1,0 +1,50 @@
+fn next(&mut self) -> Next<'_, Self> where Self: Unpin;
+这个里面的'_是生命周期吗？
+关于 '_：它是生命周期，但属于特殊语法
+直接给你结论：'_ 是生命周期语法，但它不是手动写的具体生命周期名字（比如 'a/'b），而是 Rust 的生命周期省略占位符，也叫匿名生命周期 / 通配符生命周期。
+1. 先看你这段代码
+rust
+运行
+fn next(&mut self) -> Next<'_, Self> where Self: Unpin;
+这里的 '_ = 让 Rust 自动帮你推导生命周期。
+它等价于手动写全生命周期的版本：
+rust
+运行
+fn next<'a>(&'a mut self) -> Next<'a, Self> where Self: Unpin;
+2. '_ 到底是什么？
+核心定义
+是生命周期 ✅
+不是自定义名字（不是 'a）
+是编译器自动推导的标记
+作用：告诉 Rust “这里需要一个生命周期，你自己帮我推最合适的”
+官方名字
+Rust 里叫：
+anonymous lifetime（匿名生命周期）
+placeholder lifetime（占位符生命周期）
+elided lifetime（省略的生命周期）
+3. 为什么这里必须写 '_, 而不能省略？
+Next 是一个带生命周期参数的类型，比如：
+rust
+运行
+struct Next<'a, T> { ... }
+这种类型必须显式写生命周期，不能空着。但你又不想手动写 'a，就可以用 '_ 让 Rust 自动绑定到 &mut self 的生命周期。
+4. 最直观的对比
+表格
+写法	含义
+Next<'a, Self>	手动指定生命周期 'a
+Next<'_, Self>	自动推导生命周期（推荐写法）
+Next<Self>	❌ 编译错误：生命周期缺失
+5. 常见使用场景
+'_ 最常出现在这几种地方：
+返回值里的带生命周期类型（你现在这种）
+引用类型简写
+rust
+运行
+fn foo(s: &'_ str)  // 等价于 fn foo(s: &str)
+异步 / 迭代器 / Future 相关关联类型
+大量标准库代码都用 '_ 简化生命周期写法。
+最终总结
+'_ 是生命周期，不是别的语法；
+它是自动推导的匿名生命周期；
+作用 = 让 Rust 帮你填生命周期，不用手动写 'a；
+你代码里的 Next<'_, Self> = Next 的生命周期绑定到 &mut self。

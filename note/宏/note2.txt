@@ -1,0 +1,58 @@
+我用最简单的人话讲懂：Cargo 的 features 到底是什么？什么时候加？
+你现在卡的两个点：
+#[derive(Parser)] 宏哪来的？
+features = ["derive"] 为什么要写？
+我一次性给你讲透，以后所有 Rust 库的 features 你都能秒懂。
+1. 一句话解释：features 是什么？
+features = 开关 / 可选功能
+一个库（比如 clap）很大，但你不一定需要全部功能。所以作者把功能拆成一个个开关，你需要哪个就开哪个。
+比如：
+derive = 开启宏支持
+你不开，就不能用 #[derive(Parser)]
+2. 为什么要有 features？
+让编译更快
+让最终程序更小
+避免引入你不需要的依赖
+你不用的功能，就不编译。
+3. 你什么时候需要加 features？
+超级简单的判断规则：
+规则 1：你要用某个 “高级功能”，就必须打开对应的 feature
+比如：
+你想用 宏 #[derive(Parser)]→ 必须打开 features = ["derive"]
+你想用 JSON 序列化→ 必须打开 serde 的 features = ["derive"]
+你想用 数据库异步→ 必须打开 SQLx 的 features = ["runtime-tokio-native-tls"]
+规则 2：你不用高级功能 → 什么都不用加
+比如你只用 clap 最基础的手写解析，就不需要 derive。
+4. 最关键：我怎么知道该加哪个 feature？
+永远只有一个答案：看库的官方文档！
+库作者会明确写：
+想使用 derive 宏？请在 Cargo.toml 中添加：features = ["derive"]
+5. 你现在的代码为什么必须加 derive？
+因为：
+rust
+运行
+#[derive(Parser)]
+这个宏不是 clap 默认自带的！
+它是一个可选功能，你必须手动打开才能用。
+所以：
+toml
+clap = { version = "4.0", features = ["derive"] }
+不加 → 编译报错加了 → 宏才能用
+6. 超级简单记忆法
+你只需要记住 3 条：
+features = 可选功能开关
+你要用某个功能 → 打开对应 feature
+不知道加哪个 → 看文档！
+7. 最常见的 features 清单（你一定会遇到）
+表格
+库	要加的 feature	为什么加？
+clap	"derive"	让你能用 #[derive(Parser)] 宏
+serde	"derive"	让你能用 #[derive(Serialize)]
+tokio	"full" 或 "macros"	启用异步宏 #[tokio::main]
+rand	"std"	启用随机数基础功能
+终极总结（你以后永远不会迷茫）
+#[derive(Parser)] 是 clap 的宏功能
+这个功能默认关闭
+必须用 features = ["derive"] 打开
+所有库都一样：要用什么功能，就开什么 feature
+不知道开什么？查文档！

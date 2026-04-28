@@ -1,0 +1,82 @@
+命令行 --help 完全看懂指南（以 cargo run --help 为例）
+我来用最简单、最清晰的方式教你读懂所有命令行的帮助文档，通用所有命令（git、npm、docker、cargo 都一样）。
+1. 先看最顶部：这个命令是干嘛的？
+plaintext
+Run a binary or example of the local package
+这是一句话功能说明：cargo run = 运行本地包的二进制文件或示例。
+2. 第二行：用法格式（最重要！）
+plaintext
+Usage: cargo run [OPTIONS] [ARGS]...
+这里的符号是通用规则，所有命令都一样：
+表格
+符号	含义
+[]	可选参数（可写可不写）
+<>	必填参数（必须填内容）
+...	可以写多个
+OPTIONS	短横线开头的选项，如 -h --release
+ARGS	传给程序本身的参数
+所以：cargo run 后面可以加选项，也可以加程序参数。
+3. 第三部分：Arguments（传给程序的参数）
+plaintext
+Arguments:
+  [ARGS]...  Arguments for the binary or example to run
+这是你写的 Rust 程序自己接收的参数，不是给 cargo 用的。
+例子：
+plaintext
+cargo run -- hello world
+hello world 就是这里的 ARGS。
+4. 第四部分：Options（最常用的选项）
+所有短横线 - / 双横线 -- 开头的都是选项。
+常见格式
+短选项 + 长选项
+plaintext
+-v, --verbose...
+-h, --help
+-v = --verbose（简写和全名功能一样）
+带值的选项
+plaintext
+--color <WHEN>
+-j, --jobs <N>
+<> 表示要填内容，例如：
+plaintext
+cargo run --color always
+cargo run -j 4
+可选值列表
+plaintext
+[possible values: auto, always, never]
+只能从里面选，不能乱写。
+5. 分组说明（cargo 特有）
+帮助文档会把选项分类，方便查找：
+Package Selection: 选哪个包
+Target Selection: 运行二进制还是示例
+Feature Selection: 启用功能
+Compilation Options: 编译选项
+Manifest Options: 配置文件选项
+最常用的几个你必须记住
+plaintext
+-h, --help         查看帮助
+-r, --release      发布模式编译（优化）
+-p, --package      指定包
+--bin              运行指定二进制
+--example          运行示例
+-j, --jobs         并行编译线程数
+--manifest-path    指定 Cargo.toml 路径
+6. 最后一行：更详细的帮助
+plaintext
+Run `cargo help run` for more detailed information.
+--help 是简洁版cargo help run 是完整版（更详细）
+快速总结（你以后看任何命令都能用）
+第一行：功能
+第二行：用法格式
+[] 可选
+<> 必填
+- / -- 选项
+中间：选项含义
+最后：更详细帮助命令
+小测试（马上学会）
+下面这个是什么意思？
+plaintext
+--profile <PROFILE-NAME>
+答案：--profile 是选项，后面必须跟一个配置名称，例如：
+plaintext
+cargo run --profile dev

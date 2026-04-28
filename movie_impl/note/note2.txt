@@ -1,0 +1,10 @@
+
+
+// 通过给main添加返回值，可以更方便的对错误进行处理，也可以统一错误处理
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut file = File::open("input.txt")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    println!("File content: {}", contents);
+    Ok(())
+}

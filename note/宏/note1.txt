@@ -1,0 +1,65 @@
+这是一个非常棒的问题！很多 Rust 新手看到代码里满天飞的 #[derive(...)]、#[...] 都会感到困惑：这些宏是哪来的？我怎么知道该加哪个？
+我给你用最简单、最清晰的方式讲明白，你以后再也不会迷茫。
+1. 先搞懂：宏分 2 大类
+Rust 里你看到的 #[...] 只有两种：
+① 标准库自带的宏（不用装包）
+比如：
+#[derive(Debug)]
+#[derive(Clone)]
+#[derive(Default)]
+#[derive(PartialEq)]
+这些是 Rust 官方自带的，任何 Rust 项目都能用，不需要依赖。
+② 第三方库提供的宏（必须装包才能用）
+你问的：
+rust
+运行
+#[derive(Parser)]
+struct Cli {
+Parser 就是第三方库 clap 提供的！
+没有 clap 这个依赖，编译器根本不认识 Parser。
+2. 核心结论（最重要）
+你该加什么宏，完全取决于你想用哪个库的功能
+一句话总结：
+宏不是凭空来的，是你用的库给你的。
+3. 你什么时候该加宏？怎么知道加哪些？
+我给你一个永远不会错的判断规则：
+规则 1：你想让结构体拥有某种能力 → 加 derive 宏
+想打印结构体 → #[derive(Debug)]
+想复制结构体 → #[derive(Clone)]
+想比较结构体是否相等 → #[derive(PartialEq)]
+想创建默认值 → #[derive(Default)]
+这些是标准库提供的。
+规则 2：你使用某个第三方库 → 必须看它的文档
+比如：
+你要用 clap 命令行解析 → 文档告诉你要加 #[derive(Parser)]
+你要用 serde 序列化 → 文档告诉你要加 #[derive(Serialize, Deserialize)]
+你要用 diesel ORM → 文档告诉你要加 #[derive(Queryable)]
+你要用 async-trait → 文档告诉你要加 #[async_trait]
+结论：
+宏不是你猜的，是库文档告诉你必须加的。
+4. 你问的 #[derive(Parser)] 到底是什么？
+它来自：
+toml
+clap = { version = "4.0", features = ["derive"] }
+clap 库说：
+你想让我自动解析命令行参数？那你必须给你的结构体加上 #[derive(Parser)]，我才能生成解析代码。
+所以：
+不是你想加就加，是库要求你必须加。
+5. 最简单的记忆方法
+你只需要记住 3 条：
+标准库的 derive：给结构体加基础能力（打印、复制、比较…）
+第三方库的宏：库让你加你就加（看文档）
+不知道加什么？查文档！
+6. 最常见的第三方宏清单（你以后一定会遇到）
+给你一个速查表：
+表格
+库	要加的宏	作用
+clap	#[derive(Parser)]	命令行解析
+serde	#[derive(Serialize, Deserialize)]	JSON 序列化
+diesel	#[derive(Queryable)]	数据库映射
+thiserror	#[derive(Error)]	定义错误类型
+async-trait	#[async_trait]	异步 trait
+总结（超简短）
+#[derive(Parser)] 是 clap 库要求加的
+你用什么库，就加什么宏
+不知道加什么 → 看库的文档
