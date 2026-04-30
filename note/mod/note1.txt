@@ -1,0 +1,162 @@
+下面用清晰、实用、可直接照抄的方式，讲清楚 Rust 里 多模块 + src/bin 多二进制文件 的完整用法。
+一、标准项目结构（最常用）
+plaintext
+myproj/
+├── Cargo.toml
+└── src/
+    ├── lib.rs          # 公共库代码（共享模块）
+    ├── main.rs          # 默认主程序（可选）
+    ├── mymod/           # 自定义模块（可多层嵌套）
+    │   ├── mod.rs
+    │   └── utils.rs
+    └── bin/             # 多二进制入口目录（关键）
+        ├── app1.rs
+        ├── app2.rs
+        └── app3/
+            └── main.rs
+要点：
+src/main.rs：默认二进制，cargo run 直接跑它。
+src/bin/*.rs：每个文件是独立二进制，自动识别，无需 Cargo.toml 配置。
+src/bin/xxx/main.rs：子目录形式，二进制名是目录名（如 app3）。
+lib.rs：放公共代码，给所有二进制共享调用。
+二、最简示例（可直接运行）
+1. Cargo.toml（无需加 [[bin]]）
+toml
+[
+package
+]
+name = "myproj"
+version = "0.1.0"
+edition = "2021"
+2. src/lib.rs（公共模块）
+rust
+运行
+// 导出模块
+pub mod mymod;
+
+// 公共函数
+pub fn hello() {
+    println!("Hello from lib!");
+}
+3. src/mymod/mod.rs
+rust
+运行
+pub mod utils;
+4. src/mymod/utils.rs
+rust
+运行
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+5. src/bin/app1.rs（独立二进制）
+rust
+运行
+// 引用库代码
+use myproj::hello;
+use myproj::mymod::utils::add;
+
+fn main() {
+    hello();
+    println!("1+2={}", add(1, 2));
+    println!("This is app1!");
+}
+6. src/bin/app2.rs（另一个二进制）
+rust
+运行
+fn main() {
+    println!("This is app2!");
+}
+三、运行不同二进制
+bash
+运行
+# 默认运行 src/main.rs（如果有）
+cargo run
+
+# 运行 src/bin/app1.rs
+cargo run --bin app1
+
+# 运行 src/bin/app2.rs
+cargo run --bin app2
+
+# 运行 src/bin/app3/main.rs（目录形式）
+cargo run --bin app3
+四、模块引用规则（重点）
+库内引用（lib.rs → 子模块）
+rust
+运行
+// src/lib.rs
+pub mod mymod;  // 引入 src/mymod/mod.rs
+二进制引用库（src/bin/*.rs → lib.rs）
+rust
+运行
+// 包名::模块名
+use myproj::mymod::utils::add;
+子模块间引用
+rust
+运行
+// src/mymod/utils.rs
+use super::*;  // 同层模块
+use crate::mymod::utils;  // 绝对路径（crate = 当前包）
+五、什么时候用 src/bin？
+✅ 一个项目多个独立命令行工具（如：cli、server、worker）
+✅ 共享核心逻辑（lib.rs），不同入口调用
+✅ 替代复杂的 [[bin]] 配置，结构清晰
+六、对比：传统写法（不推荐）
+以前很多人这样写（容易乱）：
+plaintext
+src/
+├── main.rs
+├── app1.rs
+├── app2.rs
+└── lib.rs
+Cargo.toml 必须手动配置：
+toml
+[[
+bin
+]]
+name = "app1"
+path = "src/app1.rs"
+
+[[
+bin
+]]
+name = "app2"
+path = "src/app2.rs"
+缺点：配置繁琐、目录混乱、无法自动发现。
+七、总结
+src/bin/ 是 Rust 官方推荐的多二进制标准目录。
+每个 .rs 文件自动成为独立二进制，无需配置。
+公共代码放 lib.rs，所有二进制共享调用。
+运行：cargo run --bin 名字。
+要不要我给你生成一个可直接编译运行的完整压缩包（含所有文件）？
+官网文档在哪里介绍这个了，怎么没找到呢，帮我找到官网文档中介绍这个的地址
+下面直接给你 Rust 官方文档（英文原版）中明确写 src/bin/ 多二进制的 3 个权威地址，以及中文对照位置，你可以直接打开。
+一、Cargo 手册（官方，最权威）：项目布局（Project Layout）
+英文官方：
+https://doc.rust-lang.org/cargo/guide/project-layout.html
+原文关键句：
+Other executables can be placed in src/bin/.
+中文翻译（rustwiki）：
+https://rustwiki.org/zh-CN/cargo/guide/project-layout.html
+二、The Rust Programming Language（官方书）：Packages and Crates
+英文官方：
+https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html
+原文关键句：
+A package can have multiple binary crates by placing files in the src/bin directory: Each file will be a separate binary crate.
+中文翻译（rustwiki）：
+https://rustwiki.org/zh-CN/book/ch07-01-packages-and-crates.html
+三、Rust by Example（官方示例书）：Cargo Conventions
+英文官方：
+https://doc.rust-lang.org/rust-by-example/cargo/conventions.html
+直接给了完整示例结构：
+plaintext
+foo
+├── Cargo.toml
+└── src
+    ├── main.rs
+    └── bin
+        └── my_other_bin.rs
+以及运行命令：cargo run --bin my_other_bin
+四、为什么你之前没找到？
+它不在 “模块（modules）” 章节，而是在 Cargo 手册 → 项目布局 和 The Rust Book → 包与 crate 里。
+搜索关键词要用：src/bin、multiple binaries、project layout，而不是只搜 “多模块”。

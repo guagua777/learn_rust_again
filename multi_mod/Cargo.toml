@@ -1,0 +1,7 @@
+[package]
+name = "multi_mod"
+version = "0.1.0"
+edition = "2024"
+default-run = "multi_mod"  # ← 添加这一行
+
+[dependencies]

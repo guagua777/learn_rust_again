@@ -1,0 +1,66 @@
+二进制引用库（src/bin/*.rs → lib.rs）
+// 包名::模块名
+use myproj::mymod::utils::add;
+
+子模块间引用
+// src/mymod/utils.rs
+use super::*;  // 同层模块
+use crate::mymod::utils;  // 绝对路径（crate = 当前包）
+
+
+为什么要这样，为什么二进制引用库要用包名，而子模块间引用，要用crate
+我来给你彻底讲透、一句话都不绕，让你以后永远不再混淆！
+核心一句话
+因为它们所在的 “根” 不一样：
+src/bin/xxx.rs = 独立的二进制 crate
+src/lib.rs = 库 crate
+src/xxx/xxx.rs = 库 crate 内部的模块
+1. 先搞懂：你的项目里有几个 crate？
+Rust 里一个 Cargo 项目，默认会生成 两个根：
+plaintext
+myproj/         <-- 包名（package name）
+├── src/lib.rs  <-- 【库根】crate 名 = myproj
+└── src/bin/a.rs <-- 【二进制根】独立 crate，和库是“兄弟关系”
+重点：
+库：根是 lib.rs，crate 名叫 myproj
+二进制：根是 a.rs，它是一个完全独立的 crate
+它们不是父子关系，是兄弟关系！
+2. 所以：二进制为什么要写 use myproj::...
+因为 二进制 crate 要调用 库 crate，就像调用外部依赖一样！
+rust
+运行
+// src/bin/a.rs
+use myproj::mymod::utils::add;
+相当于：
+我是一个独立程序，我要引用名为 myproj 的库。
+就像你引用 serde、rand 一样：
+rust
+运行
+use serde::Serialize;
+use rand::Rng;
+use myproj::hello;  // 完全同理！
+二进制 ↔ 库 = 外部调用关系
+必须用 库的名字（包名） 才能找到。
+3. 子模块为什么用 crate:: 或 super::
+因为 模块都在同一个库 crate 内部！
+plaintext
+src/lib.rs       <-- crate 根
+ └── mymod/
+      └── utils.rs <-- 内部模块
+在 utils.rs 里：
+crate:: = 从库根开始找
+super:: = 回到上一级模块
+它们都在 同一个库 crate 内部，所以不需要包名。
+4. 最清晰的对比（背会这张表）
+表格
+代码位置	属于谁	引用库的写法	原因
+src/bin/xxx.rs	独立二进制 crate	use myproj::xxx	外部调用库
+src/mymod/xxx.rs	库内部模块	use crate::xxx	内部调用自己
+5. 终极大白话总结
+二进制文件（src/bin/xxx.rs）
+“我是一个独立程序，我要引用隔壁的库，所以我必须写库的名字 myproj。”
+库内部模块（src/mymod/xxx.rs）
+“我就在库里面，我直接用 crate 根找自己人就行，不用写库名。”
+6. 你只要记住这 2 条规则，永远不会错
+在 src/bin/ 下 → 引用库 → 必须写包名
+在 src/lib.rs 或其子模块下 → 内部引用 → 用 crate::
