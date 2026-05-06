@@ -1,0 +1,53 @@
+用户44753154229
+右边这个文件中assert_eq!(lock, &12345);为什么可以使用12345的引用？
+
+let lock = LOCK.get_or_init(|| 12345);
+
+        assert_eq!(lock, &12345);
+
+这两行代码里面的12345，引用应该不是同一个地址，为什么还能相等呢，包括最后的assert_eq!(LOCK.get(), Some(&12345));​
+TRAE AI
+Thought process
+用户问的是关于 Rust 中 assert_eq! 的问题，具体是为什么 lock 和 &12345 可以相等，以及 LOCK.get() 返回的 Some(&12345) 也能相等。
+
+让我先查看用户提到的文件内容。
+
+让我先查看你提到的这个文件：
+
+src/bin/oncelock.rs
+这是一个非常好的问题！关键在于 Rust 中引用的比较规则。让我详细解释一下：
+
+核心原理：引用比较的是值，不是地址
+当你比较两个引用（如 &T 和 &T）时，Rust 默认比较的是它们指向的值，而不是内存地址。
+
+这是因为 &T 实现了 PartialEq trait，当 T 实现了 PartialEq 时，引用的比较会自动"解引用"比较值。
+
+具体分析你的代码
+
+rust
+let lock = LOCK.get_or_init(|| 12345);
+assert_eq!(lock, &12345);
+lock 的类型：get_or_init 返回的是 &usize（对 OnceLock 内部存储值的引用）
+&12345 的类型：创建了一个临时的 &usize 引用（指向临时值 12345）
+比较过程：当比较 &usize 和 &usize 时，Rust 会自动比较它们指向的数值（都是 12345）
+
+rust
+assert_eq!(LOCK.get(), Some(&12345));
+LOCK.get() 返回：Option<&usize>（Some 包裹的引用）
+Some(&12345)：Option<&usize>（Some 包裹的临时引用）
+比较过程：Option 的比较会递归比较内部值，同样比较的是引用指向的数值
+示例验证
+
+rust
+let a = 12345;
+let b = 12345;
+
+let ref_a = &a;  // 地址 A
+let ref_b = &b;  // 地址 B（不同于 A）
+
+assert_eq!(ref_a, ref_b);  // ✅ 通过！比较的是值（12345 == 12345）
+总结
+代码	比较的是什么	结果
+assert_eq!(lock, &12345)	两个 &usize 指向的值	12345 == 12345 ✅
+assert_eq!(LOCK.get(), Some(&12345))	两个 Option<&usize> 内部的值	12345 == 12345 ✅
+关键要点：在 Rust 中，引用的 == 比较的是指向的值，而非内存地址。这是 Rust 的默认行为，让代码更加直观和符合直觉。

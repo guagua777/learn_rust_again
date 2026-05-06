@@ -1,0 +1,108 @@
+Rc + RefCell 实现双向链表（最简实战）
+先记核心组合：
+Rc：多所有权、引用计数、单线程共享
+RefCell：内部可变性，不可变引用也能改内部数据
+合起来：Rc<RefCell<T>> = 多个人拥有同一份数据，还能随时修改。
+1. 定义节点结构
+双向链表每个节点：存值、前驱、后继
+rust
+运行
+use std::rc::Rc;
+use std::cell::RefCell;
+
+// 节点别名：方便书写
+type Link<T> = Option<Rc<RefCell<Node<T>>>>;
+
+#[derive(Debug)]
+struct Node<T> {
+    val: T,
+    prev: Link<T>,
+    next: Link<T>,
+}
+
+impl<T> Node<T> {
+    fn new(val: T) -> Self {
+        Node {
+            val,
+            prev: None,
+            next: None,
+        }
+    }
+}
+
+// 双向链表结构体
+struct DoubleList<T> {
+    head: Link<T>,
+    tail: Link<T>,
+}
+2. 实现链表基础方法
+rust
+运行
+impl<T> DoubleList<T> {
+    fn new() -> Self {
+        DoubleList { head: None, tail: None }
+    }
+
+    // 尾部插入节点
+    fn push_back(&mut self, val: T) {
+        // 新建节点，包上 Rc + RefCell
+        let new_node = Rc::new(RefCell::new(Node::new(val)));
+
+        match self.tail.take() {
+            // 链表非空
+            Some(old_tail) => {
+                // 旧尾节点的 next 指向新节点
+                old_tail.borrow_mut().next = Some(new_node.clone());
+                // 新节点的 prev 指向旧尾
+                new_node.borrow_mut().prev = Some(old_tail);
+                // 更新链表尾指针
+                self.tail = Some(new_node);
+            }
+            // 链表为空
+            None => {
+                self.head = Some(new_node.clone());
+                self.tail = Some(new_node);
+            }
+        }
+    }
+}
+3. 测试运行
+rust
+运行
+fn main() {
+    let mut list = DoubleList::new();
+    list.push_back(10);
+    list.push_back(20);
+    list.push_back(30);
+
+    // 遍历打印
+    let mut cur = list.head.clone();
+    while let Some(node) = cur {
+        println!("{}", node.borrow().val);
+        cur = node.borrow().next.clone();
+    }
+}
+输出：
+plaintext
+10
+20
+30
+4. 关键原理拆解
+为什么一定要 RefCell？
+Rc 只能共享不可变引用，Rc 本身不允许改内部数据。
+但双向链表需要：通过前驱节点修改后继节点的指针，必须要有内部可变性，所以套一层 RefCell。
+借用规则运行时检查
+node.borrow() / node.borrow_mut()
+编译不检查借用规则，放到运行时检查
+同时多个只读借用允许
+同时存在可变 + 只读、或多个可变借用 → 直接 panic
+Cell 为什么不能干这事？
+Cell 只能整体取值 / 赋值，不能拿内部引用。
+链表需要借用节点内部的 prev/next 指针并修改，必须要 RefCell 的引用级借用能力。
+5. 三者选型一句话总结
+Cell：只存简单 Copy 类型，只做整体读写，不要引用 → 用它
+RefCell：需要内部可变性、需要借用内部引用 → 用它
+Rc<RefCell<T>>：单线程、多所有权、还要互相引用 + 修改 → 标配组合
+6. 延伸对比
+多线程场景：把 Rc 换成 Arc，RefCell 换成 Mutex → Arc<Mutex<T>>
+循环引用风险：Rc + RefCell 容易产生循环引用，内存泄露，需要用 Weak 断环。
