@@ -1,0 +1,48 @@
+[package]
+name = "tokio_test"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "error1"
+path = "src/bin/error/error1.rs"
+
+[[bin]]
+name = "error2"
+path = "src/bin/error/error2.rs"
+
+[[bin]]
+name = "error3"
+path = "src/bin/error/error3.rs"
+
+[[bin]]
+name = "error4"
+path = "src/bin/error/error4.rs"
+
+[[bin]]
+name = "error5"
+path = "src/bin/error/error5.rs"
+
+[[bin]]
+name = "async_error"
+path = "src/bin/error/async_error.rs"
+
+[[bin]]
+name = "read_file"
+path = "src/bin/io/read_file.rs"
+
+[[bin]]
+name = "channel"
+path = "src/bin/channel/channel.rs"
+
+
+
+[dependencies]
+anyhow = "1.0.102"
+chrono = "0.4.44"
+futures = "0.3.32"
+thiserror = "2.0.18"
+tokio = { version = "1.52.2", features = ["full"] }
+tokio-util = "0.7.18"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
