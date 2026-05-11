@@ -1,0 +1,72 @@
+下面从运行模型、阻塞 / 挂起、内部实现、背压、API、用途六个维度，清晰对比 std::sync::mpsc 与 tokio::sync::mpsc。
+一、核心定位与运行模型
+std::sync::mpsc（标准库）
+同步阻塞通道：用于线程间通信（OS 线程）。
+调用 send/recv 会阻塞整个线程，不能用于 async 函数。
+tokio::sync::mpsc（Tokio）
+异步非阻塞通道：用于Tokio 任务间通信（轻量级协程）。
+调用 .await 时挂起当前任务，释放线程去跑其他任务，不阻塞线程。
+二、创建方式与缓冲区
+1. std::sync::mpsc
+rust
+运行
+// 无界（无限缓冲，send 永不阻塞）
+let (tx, rx) = std::sync::mpsc::channel::<T>();
+
+// 有界（满了会阻塞 send）
+let (tx, rx) = std::sync::mpsc::sync_channel::<T>(10);
+channel()：无界，send 永不阻塞（内存可能暴涨）。
+sync_channel(n)：有界，缓冲满后 send 阻塞线程。
+2. tokio::sync::mpsc
+rust
+运行
+// 有界（推荐，背压友好）
+let (tx, mut rx) = tokio::sync::mpsc::channel::<T>(10);
+
+// 无界（不推荐生产环境）
+let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<T>();
+channel(n)：有界异步，满了 send().await 挂起任务。
+unbounded_channel()：无界，send 立即完成，风险同标准库。
+三、阻塞 vs 挂起（关键区别）
+表格
+操作	std::sync::mpsc	tokio::sync::mpsc
+send 满了	阻塞整个线程	挂起当前任务（线程可复用）
+recv 空了	阻塞整个线程	挂起当前任务（线程可复用）
+async 函数中	❌ 禁止（会阻塞线程）	✅ 原生支持（.await 挂起）
+四、内部实现
+std::sync::mpsc：基于 Mutex + Condvar 实现，线程阻塞、唤醒由 OS 调度，开销大。
+tokio::sync::mpsc：基于无锁环形缓冲区（Ring Buffer）+ Waker 注册，任务挂起 / 唤醒由 Tokio 调度，开销小、高并发友好。
+五、API 差异
+std::sync::mpsc
+rust
+运行
+// 发送（阻塞或立即完成）
+tx.send(value).unwrap();
+
+// 接收（阻塞）
+let val = rx.recv().unwrap();
+无 .await，同步调用。
+tokio::sync::mpsc
+rust
+运行
+// 发送（异步，满了挂起）
+tx.send(value).await.unwrap();
+
+// 接收（异步，空了挂起）
+let val = rx.recv().await.unwrap();
+必须 .await，异步调用。
+六、背压（Backpressure）与场景选择
+std::sync::mpsc
+适合：简单多线程程序、非 async 代码、任务少、低并发。
+缺点：阻塞线程、资源利用率低、高并发下性能差。
+tokio::sync::mpsc
+适合：异步服务（Web、网络、IO）、高并发、任务多、需要高效资源复用。
+优点：非阻塞、任务挂起、高吞吐、低延迟、背压可控。
+七、跨场景通信（补充）
+async → sync：用 std::sync::mpsc::channel（无界）。
+sync → async：用 tokio::sync::mpsc::unbounded_channel，同步端用 blocking_send。
+双向有界：用 tokio::sync::mpsc::channel，同步端用 blocking_send/blocking_recv。
+总结
+std::sync::mpsc：线程级、同步阻塞、OS 调度、简单低效。
+tokio::sync::mpsc：任务级、异步非阻塞、Tokio 调度、高效高并发。
+一句话：同步多线程用 std，异步 Tokio 任务用 tokio。

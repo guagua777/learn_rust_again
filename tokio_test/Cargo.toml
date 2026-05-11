@@ -35,6 +35,30 @@ path = "src/bin/io/read_file.rs"
 name = "channel"
 path = "src/bin/channel/channel.rs"
 
+[[bin]]
+name = "channelVsChanle"
+path = "src/bin/channel/channelVsChanle.rs"
+
+[[bin]]
+name = "channel2"
+path = "src/bin/channel/channel2.rs"
+
+[[bin]]
+name = "broadcast"
+path = "src/bin/channel/broadcast.rs"
+
+[[bin]]
+name = "mutex1"
+path = "src/bin/mutex/mutex1.rs"
+
+[[bin]]
+name = "mutex2"
+path = "src/bin/mutex/mutex2.rs"
+
+[[bin]]
+name = "mutex3"
+path = "src/bin/mutex/mutex3.rs"
+
 
 
 [dependencies]
