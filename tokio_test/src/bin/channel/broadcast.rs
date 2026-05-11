@@ -2,7 +2,7 @@ use tokio::sync::broadcast::{Sender, Receiver};
 
 #[tokio::main]
 async fn main() {
-    let (tx: Sender<String>, mut rx: Receiver<String>) =
+    let (tx, mut rx) =
         tokio::sync::broadcast::channel::<String>(16);
 
     for n in 0..20 {

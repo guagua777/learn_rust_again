@@ -59,10 +59,37 @@ path = "src/bin/mutex/mutex2.rs"
 name = "mutex3"
 path = "src/bin/mutex/mutex3.rs"
 
+[[bin]]
+name = "select1"
+path = "src/bin/select/select1.rs"
+
+
+[[bin]]
+name = "select2"
+path = "src/bin/select/select2.rs"
+
+
+[[bin]]
+name = "pin"
+path = "src/bin/pin/pin.rs"
+
+[[bin]]
+name = "pin2"
+path = "src/bin/pin/pin2.rs"
+
+[[bin]]
+name = "pin3"
+path = "src/bin/pin/pin3.rs"
+
+[[bin]]
+name = "pin4"
+path = "src/bin/pin/pin4.rs"
+
 
 
 [dependencies]
 anyhow = "1.0.102"
+async-recursion = "1"
 chrono = "0.4.44"
 futures = "0.3.32"
 thiserror = "2.0.18"
