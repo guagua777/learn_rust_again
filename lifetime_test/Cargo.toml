@@ -3,4 +3,69 @@ name = "lifetime_test"
 version = "0.1.0"
 edition = "2024"
 
+
 [dependencies]
+rand = "0.10.1"
+
+
+[[bin]]
+name = "lifetime_test"
+path = "src/main.rs"
+
+
+
+[[bin]]
+name = "lifetime1"
+path = "src/bin/lifetime1.rs"
+
+[[bin]]
+name = "lifetime2"
+path = "src/bin/lifetime2.rs"
+
+[[bin]]
+name = "lifetime3"
+path = "src/bin/lifetime3.rs"
+
+[[bin]]
+name = "lifetime4"
+path = "src/bin/lifetime4.rs"
+
+[[bin]]
+name = "lifetime5"
+path = "src/bin/lifetime5.rs"
+
+[[bin]]
+name = "lifetime6"
+path = "src/bin/lifetime6.rs"
+
+[[bin]]
+name = "lifetime7"
+path = "src/bin/lifetime7.rs"
+
+[[bin]]
+name = "lifetime_coercison"
+path = "src/bin/lifetime_coercison.rs"
+
+[[bin]]
+name = "lifetime_static"
+path = "src/bin/lifetime_static.rs"
+
+[[bin]]
+name = "lifetime_static1"
+path = "src/bin/lifetime_static1.rs"
+
+[[bin]]
+name = "lifetime_static2"
+path = "src/bin/lifetime_static2.rs"
+
+[[bin]]
+name = "lifetime8"
+path = "src/bin/lifetime8.rs"
+
+
+
+
+
+
+
+
