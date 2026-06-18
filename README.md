@@ -9,3 +9,7 @@
    4. https://kaisery.github.io/trpl-zh-cn/title-page.html
 2. unsafe code: https://cliffle.com/p/dangerust/
 3. 
+
+###
+1. The memory is automatically returned once the variable that owns it goes out of scope
+2.  A String is made up of three parts, shown on the left: a pointer to the memory that holds the contents of the string, a length, and a capacity. This group of data is stored on the stack.
