@@ -8,7 +8,9 @@
    3. https://github.com/rust-lang/book
    4. https://kaisery.github.io/trpl-zh-cn/title-page.html
 2. unsafe code: https://cliffle.com/p/dangerust/
-3. 
+3. FFI https://jakegoulding.com/rust-ffi-omnibus/
+4. http://timd.cn/
+5. http://timd.cn/rust-dylib-example/
 
 ###
 1. The memory is automatically returned once the variable that owns it goes out of scope
