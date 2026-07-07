@@ -10,6 +10,7 @@
 2. unsafe code: https://cliffle.com/p/dangerust/
 3. FFI https://jakegoulding.com/rust-ffi-omnibus/
    1. https://github.com/shepmaster/rust-ffi-omnibus
+   2. https://www.bilibili.com/video/BV1a34y1g7L3
 4. http://timd.cn/
 5. http://timd.cn/rust-dylib-example/
 

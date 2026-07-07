@@ -1,0 +1,1 @@
+1. 先转为stream，然后再使用stream的api
