@@ -5,5 +5,15 @@ edition = "2024"
 
 [dependencies]
 
+
+
 [[bin]]
+name = "label_break"
+path = "src/main.rs"
+
+[[bin]]
+name = "borrow"
+path = "src/bin/borrow.rs"
+
+
 
