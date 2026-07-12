@@ -13,7 +13,20 @@
    2. https://www.bilibili.com/video/BV1a34y1g7L3
 4. http://timd.cn/
 5. http://timd.cn/rust-dylib-example/
+6. https://blog.csdn.net/sotter2007/article/details/159921854
+7. https://www.bilibili.com/video/BV1VhVr6gEsM
+   - https://mara.nl/atomics/
+   - https://github.com/m-ou-se/rust-atomics-and-locks
+   - https://github.com/guagua777/rust-atomics-and-locks
+8. 
+
 
 ###
 1. The memory is automatically returned once the variable that owns it goes out of scope
 2.  A String is made up of three parts, shown on the left: a pointer to the memory that holds the contents of the string, a length, and a capacity. This group of data is stored on the stack.
+
+
+### 
+1. https://blog.csdn.net/sotter2007/article/details/159921854   
+   - 107
+2. 
