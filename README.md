@@ -18,7 +18,15 @@
    - https://mara.nl/atomics/
    - https://github.com/m-ou-se/rust-atomics-and-locks
    - https://github.com/guagua777/rust-atomics-and-locks
-8. 
+8. https://github.com/guagua777/rusty_raytracer
+   - https://www.bilibili.com/video/BV1d8mXBbEae
+9. https://www.bilibili.com/video/BV1oRKZ6GEUb
+10. https://github.com/rustcc/writing-an-os-in-rust
+10. https://github.com/readlnh/Writing-an-OS-in-Rust-Second-Edition-zh_CN
+11. https://www.bilibili.com/video/BV1SGJ36aEeh
+12. https://www.bilibili.com/video/BV1m1sreSEoh
+13. 
+
 
 
 ###
