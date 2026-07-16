@@ -1,8 +1,8 @@
-use std::sync::Arc;
+// use std::sync::Arc;
 use std::thread;
 
 fn main() {
-    let a = Arc::new([1, 2, 3]);
+    let a = std::sync::Arc::new([1, 2, 3]);
 
     thread::spawn({
         // scope starts
