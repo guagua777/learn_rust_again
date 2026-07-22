@@ -28,6 +28,8 @@ pub fn base_hello() -> &'static str {
     "Basic function, no feature required"
 }
 
+//
+
 #[cfg(test)]
 mod tests {
     use super::*;

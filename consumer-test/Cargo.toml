@@ -1,0 +1,22 @@
+[package]
+name = "consumer-test"
+version = "0.1.0"
+edition = "2024"
+
+
+[features]
+default = ["json"]
+json = ["feature_demo/json"]
+async = ["feature_demo/async", "dep:tokio"]
+full = ["json", "async"]
+
+[dependencies]
+# 方式1：使用 feature_demo 默认特性（开启 json）
+# feature_demo = { path = "../feature_demo" }
+
+# 方式2：关闭默认特性，只开启 async
+feature_demo = { path = "../feature_demo", default-features = false, features = ["async"] }
+
+# 方式3：全部功能
+# feature_demo = { path = "../feature_demo", default-features = false }
+tokio = { version = "1.0", optional = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
