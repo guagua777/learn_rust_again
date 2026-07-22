@@ -1,0 +1,24 @@
+[package]
+name = "feature_demo"
+version = "0.1.0"
+edition = "2024"
+
+
+
+
+[features]
+# 默认特性：自动开启 json
+default = ["json"]
+# 开启 serde 的 json 特性
+json = ["dep:serde", "dep:serde_json"]
+# 激活可选依赖 tokio
+async = ["dep:tokio"]
+# 组合特性，一键全开
+full = ["json", "async"]
+
+[dependencies]
+serde = { version = "1.0", optional = true, features = ["derive"] }
+serde_json = { version = "1.0", optional = true }
+tokio = { version = "1.0", optional = true, features = ["rt", "macros", "time"] }
+
+

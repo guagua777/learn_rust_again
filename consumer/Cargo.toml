@@ -1,0 +1,7 @@
+[package]
+name = "consumer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+feature_demo = { path = "../feature_demo", default-features = false, features = ["async"] }
